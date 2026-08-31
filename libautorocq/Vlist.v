@@ -27,13 +27,13 @@ Require BuiltIn.
 Require int.Int.
 Require int.Abs.
 Require int.ComputerDivision.
-From Coq Require Import ZArith Lia.
+From Stdlib Require Import ZArith Lia.
 
 (* ---------------------------------------------------------------------- *)
 (* --- Lists for Why-3                                                --- *)
 (* ---------------------------------------------------------------------- *)
 
-Require List.
+From Stdlib Require List.
 Ltac seq := autorewrite with list ; auto with zarith.
 Hint Rewrite List.app_assoc List.app_nil_l List.app_nil_r : list.
 
@@ -41,7 +41,7 @@ Hint Rewrite List.app_assoc List.app_nil_l List.app_nil_r : list.
   (* --- Classical Lists for Alt-Ergo                                 --- *)
   (* -------------------------------------------------------------------- *)
 Require Import Qedlib.
-Require Import Lia.
+From Stdlib Require Import Lia.
 
 (* Why3 goal *)
 Definition list : forall (a:Type), Type.
@@ -127,7 +127,7 @@ Proof.
   + Import List.ListNotations.
     assert (0 < Z.of_nat (Datatypes.length (a0 :: w))).
     { replace (Datatypes.length (a0 :: w)) with (1 + Datatypes.length (w))%nat
-        by( (replace (a0 :: w) with ([a0] ++ w) by seq); rewrite List.app_length; by seq).
+        by( (replace (a0 :: w) with ([a0] ++ w) by seq); rewrite List.length_app; by seq).
       assert (0 <= Z.of_nat (Datatypes.length w)) by apply Zle_0_nat.
       replace (Z.of_nat (1 + Datatypes.length w)) with (1 + Z.of_nat (Datatypes.length w)).
       { lia. }
@@ -148,13 +148,13 @@ Proof.
 Qed.
 
 (* Why3 goal *)
-Hypothesis length_concat :
+Axiom length_concat :
   forall {a:Type} {a_WT:WhyType a},
   forall (u:list a) (v:list a),
   ((length (concat u v)) = ((length u) + (length v))%Z).
 
 (* Why3 goal *)
-Hypothesis length_repeat :
+Axiom length_repeat :
   forall {a:Type} {a_WT:WhyType a},
   forall (w:list a) (n:Z), (0%Z <= n)%Z ->
   ((length (repeat w n)) = (n * (length w))%Z).
@@ -164,14 +164,14 @@ Hypothesis length_repeat :
   (* -------------------------------------------------------------------- *)
 
 (* Why3 goal *)
-Hypothesis nth_cons :
+Axiom nth_cons :
   forall {a:Type} {a_WT:WhyType a},
   forall (k:Z) (x:a) (w:list a),
   ((k = 0%Z) -> ((nth (cons x w) k) = x)) /\
   (~ (k = 0%Z) -> ((nth (cons x w) k) = (nth w (k - 1%Z)%Z))).
 
 (* Why3 goal *)
-Hypothesis nth_concat :
+Axiom nth_concat :
   forall {a:Type} {a_WT:WhyType a},
   forall (u:list a) (v:list a) (k:Z),
   ((k < (length u))%Z -> ((nth (concat u v) k) = (nth u k))) /\
@@ -179,7 +179,7 @@ Hypothesis nth_concat :
    ((nth (concat u v) k) = (nth v (k - (length u))%Z))).
 
 (* Why3 goal *)
-Hypothesis nth_repeat :
+Axiom nth_repeat :
   forall {a:Type} {a_WT:WhyType a},
   forall (n:Z) (k:Z) (w:list a),
   ((0%Z <= k)%Z /\ (k < (n * (length w))%Z)%Z) -> (0%Z < (length w))%Z ->
@@ -196,7 +196,7 @@ Definition vlist_eq {a:Type} {a_WT:WhyType a} (u:list a) (v:list a) : Prop :=
   (* -------------------------------------------------------------------- *)
 
 (* Why3 goal *)
-Hypothesis extensionality :
+Axiom extensionality :
   forall {a:Type} {a_WT:WhyType a},
   forall (u:list a) (v:list a), (vlist_eq u v) -> (u = v).
 

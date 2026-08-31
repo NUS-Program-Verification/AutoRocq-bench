@@ -21,8 +21,8 @@
 (**************************************************************************)
 
 Require Import Bool.
-Require Import ZArith.
-Require Import Reals.
+From Stdlib Require Import ZArith.
+From Stdlib Require Import Reals.
 
 Require BuiltIn.
 Require map.Map.
@@ -32,7 +32,7 @@ Open Scope Z_scope.
 Set Implicit Arguments.
 
 
-From Coq Require Import ZArith Lia.
+From Stdlib Require Import ZArith Lia.
 
 (** ** Tactical *)
 
@@ -87,22 +87,33 @@ Definition boolean {A : Set}
               (f x y = false <-> ~(p x y)).
 *)
 
+(* Rocq 9.0 deprecated Zneq_bool and Zeq_bool_if. Keep local copies carrying
+   the same statements, so the case-analysis tactics below are unchanged. *)
+Definition Zneq_bool (x y : Z) : bool :=
+  match (x ?= y)%Z with Eq => false | _ => true end.
+
+Lemma Zeq_cases : forall x y, if Z.eqb x y then x = y else x <> y.
+Proof.
+  intros x y. now destruct (Z.eqb_spec x y).
+Qed.
+
 Ltac case_leq x y :=
-  generalize (Zle_cases x y) ; induction (Zle_bool x y) ; try lia.
+  generalize (Zle_cases x y) ; induction (Z.leb x y) ; try lia.
 
 Ltac case_lt x y :=
-  generalize (Zlt_cases x y) ; induction (Zlt_bool x y) ; try lia.
+  generalize (Zlt_cases x y) ; induction (Z.ltb x y) ; try lia.
 
 Ltac case_eq x y :=
-  generalize (Zeq_bool_if x y) ; induction (Zeq_bool x y) ; try lia.
+  generalize (Zeq_cases x y) ; induction (Z.eqb x y) ; try lia.
 
 Lemma Zneq_cases : forall x y, if Zneq_bool x y then x <> y else x = y.
 Proof.
   intros x y.
-  generalize (Zeq_bool_if x y).
-  unfold Zeq_bool.
   unfold Zneq_bool.
-  induction (x ?= y) ; auto.
+  destruct (x ?= y) eqn:Hcmp.
+  - now apply Z.compare_eq_iff.
+  - intros ->; now rewrite Z.compare_refl in Hcmp.
+  - intros ->; now rewrite Z.compare_refl in Hcmp.
 Qed.
 
 Ltac case_neq x y :=
@@ -122,7 +133,7 @@ Proof.
   intro H. exact (Case_gt H).
 Qed.
 
-Theorem Zeq_boolean : boolean Zeq_bool (fun x y => (x=y)).
+Theorem Zeq_boolean : boolean Z.eqb (fun x y => (x=y)).
 Proof.
   unfold boolean. intros x y. by (case_eq x y).
 Qed.
@@ -133,12 +144,12 @@ Proof.
   unfold boolean. intros x y. by (case_neq x y).
 Qed.
 
-Theorem Zlt_boolean : boolean Zlt_bool Z.lt.
+Theorem Zlt_boolean : boolean Z.ltb Z.lt.
 Proof.
   unfold boolean. intros x y. by (case_lt x y).
 Qed.
 
-Theorem Zle_boolean : boolean Zle_bool Z.le.
+Theorem Zle_boolean : boolean Z.leb Z.le.
 Proof.
   unfold boolean. intros x y. by (case_leq x y).
 Qed.
@@ -147,15 +158,15 @@ Parameter Req_bool : R -> R -> bool.
 Parameter Rlt_bool : R -> R -> bool.
 Parameter Rle_bool : R -> R -> bool.
 Parameter Rneq_bool : R -> R -> bool.
-Hypothesis Rlt_boolean : boolean Rlt_bool Rlt.
-Hypothesis Rle_boolean : boolean Rle_bool Rle.
-Hypothesis Req_boolean : boolean Req_bool (fun x y => (x=y)).
-Hypothesis Rneq_boolean : boolean Rneq_bool (fun x y => (x<>y)).
+Axiom Rlt_boolean : boolean Rlt_bool Rlt.
+Axiom Rle_boolean : boolean Rle_bool Rle.
+Axiom Req_boolean : boolean Req_bool (fun x y => (x=y)).
+Axiom Rneq_boolean : boolean Rneq_bool (fun x y => (x<>y)).
 
 Parameter Aeq_bool : forall A : Set, A -> A -> bool.
-Hypothesis Aeq_boolean : forall A : Set, boolean (@Aeq_bool A) (fun x y => x=y).
+Axiom Aeq_boolean : forall A : Set, boolean (@Aeq_bool A) (fun x y => x=y).
 Definition Aneq_bool {A : Set} (x y : A) := negb (Aeq_bool x y).
-Hypothesis Aneq_boolean : forall A : Set, boolean (@Aneq_bool A) (fun x y => x<>y).
+Axiom Aneq_boolean : forall A : Set, boolean (@Aneq_bool A) (fun x y => x<>y).
 
 (** ** Integer Induction (after a given rank) *)
 
@@ -211,7 +222,7 @@ Record farray (A B : Type) := { whytype1 : BuiltIn.WhyType A ;
                                whytype2 : BuiltIn.WhyType B ;
                                access :> @Map.map A B }.
 Definition array (A : Type) := farray Z A.
-Hypothesis extensionality: forall (A B : Type) (f g : A -> B),
+Axiom extensionality: forall (A B : Type) (f g : A -> B),
   (forall x, f x = g x) -> f = g.
 
 
@@ -284,7 +295,7 @@ Proof.
   intros.
   destruct n as [|a|a] ;
   destruct d as [|b|b] ;
-  intuition ;
+  intuition (auto) ;
   by auto with zarith.
 Qed.
 
@@ -297,7 +308,7 @@ Proof.
   intros.
   destruct n as [|a|a] ;
   destruct d as [|b|b] ;
-  intuition ;
+  intuition (auto) ;
   by auto with zarith.
 Qed.
 
@@ -328,7 +339,7 @@ Proof.
   intros.
   destruct n as [|a|a] ;
   destruct d as [|b|b] ;
-  intuition ; simpl ; forward ;
+  intuition (auto) ; simpl ; forward ;
   generalize (Z_mod_lt (Zpos a) (Zpos b) (Zgt_pos_0 b)) ;
   repeat (replace (Zneg b) with (- Zpos b) by auto with zarith) ;
   intuition (auto with zarith).

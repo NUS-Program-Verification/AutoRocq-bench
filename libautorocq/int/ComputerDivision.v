@@ -15,9 +15,9 @@ Require Import BuiltIn.
 Require BuiltIn.
 Require int.Int.
 Require int.Abs.
-From Coq Require Import ZArith Lia.
+From Stdlib Require Import ZArith Lia.
 
-Require Import Zquot.
+From Stdlib Require Import Zquot.
 
 (* Why3 comment *)
 (* div is replaced with (ZArith.BinInt.Z.quot x x1) by the coq driver *)

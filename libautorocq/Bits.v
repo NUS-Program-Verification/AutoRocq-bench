@@ -54,11 +54,11 @@ Definition Zfc := nat -> bool.
 	   
 (** ** Tacticals *)
 
-Require Import ZArith.
-Require Import FunctionalExtensionality.
+From Stdlib Require Import ZArith.
+From Stdlib Require Import FunctionalExtensionality.
 Require Import Qedlib.
 
-From Coq Require Import ZArith Lia.
+From Stdlib Require Import ZArith Lia.
 
 
 Close Scope Z_scope.
@@ -135,7 +135,7 @@ Remark two_power_nat_increase: forall n m,
   n <= m -> (two_power_nat n <= two_power_nat m)%Z.
 Proof.
   intros.
-  rewrite ((le_plus_minus n m) H).
+  replace m with (n + (m - n))%nat by lia.
   rewrite two_power_nat_plus.
   generalize (two_power_nat_is_positive (m - n)).
   pose (K:=(two_power_nat (m - n))); fold K; intro.  
@@ -148,7 +148,7 @@ Remark two_power_nat_increase_strict: forall n m,
   n < m -> (two_power_nat n < two_power_nat m)%Z.
 Proof.
   intros.
-  rewrite (le_plus_minus (n+1) m) by lia.
+  replace m with ((n + 1) + (m - (n + 1)))%nat by lia.
   rewrite two_power_nat_plus.
   generalize (two_power_nat_is_positive (m - (n+1))).
   pose (K:=(two_power_nat (m - (n+1)))); fold K; intro.  
@@ -718,7 +718,7 @@ Qed.
 
 (** Bits decomposition of [Z] integers *)
 Program Definition bits_of_Z (x:Z): bits :=		       
-  if (Zle_bool 0 x) 
+  if (Z.leb 0 x) 
   then let n := Nabs x in
        mkbits (NxHpos n) false (N_decomp n) (Zpos_decomp_trail n)
   else let n := Nabs (zlnot x) in
@@ -956,14 +956,14 @@ Qed.
 
 (** Sign encoding *)
 Lemma Zsign_encoding: forall z:Z,
-  bsign (bits_of_Z z) = negb (Zle_bool 0 z).
+  bsign (bits_of_Z z) = negb (Z.leb 0 z).
 Proof.
   intro z. unfold bits_of_Z. unfold bsign.
   case_leq 0 z; auto.
 Qed.
  
 Lemma bsign_encoding: forall b:bits,
-  bsign b = negb (Zle_bool 0 (Z_of_bits b)).
+  bsign b = negb (Z.leb 0 (Z_of_bits b)).
 Proof.
   intro b.
   rewrite <- Zsign_encoding.
@@ -1009,7 +1009,7 @@ Qed.
 
 (** The expected characteristic of binary decomposition of an integer *)
 Theorem Zbit_power: forall n k:nat,
-  Zbit (two_power_nat n) k = beq_nat n k.
+  Zbit (two_power_nat n) k = Nat.eqb n k.
 Proof.
   unfold two_power_nat. unfold Zbit. unfold bits_of_Z.
   simpl.
@@ -1044,7 +1044,7 @@ Qed.
 			  
 (** * Position of the Highest Significant Bit in two's complement representation *)
 Definition ZxHpos (z:Z): nat := 
-  if (Zle_bool 0 z) then NxHpos (Nabs z) else NxHpos (Nabs (zlnot z)).
+  if (Z.leb 0 z) then NxHpos (Nabs z) else NxHpos (Nabs (zlnot z)).
 
 (** Zero has no significant bit, as minus one *)
 Remark ZxHpos_is_zero: ZxHpos 0 = O /\ ZxHpos (-1) = O.
@@ -1347,4 +1347,4 @@ Qed.
 Ltac Zbit_ext k := apply Zbit_ext; extensionality k.
 
 Ltac auto_bits := autorewrite with bits ; auto with zarith.
-Hint Rewrite Zbit_of_zero Zbit_of_mone : bits.
+#[global] Hint Rewrite Zbit_of_zero Zbit_of_mone : bits.

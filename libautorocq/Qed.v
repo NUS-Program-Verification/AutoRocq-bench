@@ -88,12 +88,12 @@ Qed.
 
 (* Why3 goal *)
 Definition zlt : Z -> Z -> bool.
-exact(Zlt_bool).
+exact(Z.ltb).
 Defined.
 
 (* Why3 goal *)
 Definition zleq : Z -> Z -> bool.
-exact(Zle_bool).
+exact(Z.leb).
 Defined.
 
 (* Why3 goal *)
@@ -133,7 +133,7 @@ Qed.
 Lemma rleq1 : forall (x:R) (y:R), ((rleq x y) = true) <-> (x <= y)%R.
 Proof.
   intros x y.
-  compute;destruct (Rle_dec x y);intuition;discriminate.
+  compute;destruct (Rle_dec x y);intuition (auto with real);discriminate.
 Qed.
 
 (* Why3 assumption *)
@@ -210,7 +210,7 @@ Lemma cdiv_closed_remainder : forall (a:Z) (b:Z) (n:Z), (0%Z <= a)%Z ->
   (((ZArith.BinInt.Z.rem a n) = (ZArith.BinInt.Z.rem b n)) -> (a = b)))).
 Proof.
   intros a b n PA PB Range Rem.
-  Require Import ZArith.
+  From Stdlib Require Import ZArith.
   Open Scope Z_scope.
   pose (p := a/n).
   pose (q := b/n).

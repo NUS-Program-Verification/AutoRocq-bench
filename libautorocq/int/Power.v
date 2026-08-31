@@ -16,7 +16,7 @@ Require BuiltIn.
 Require int.Int.
 
 Require Import Exponentiation.
-From Coq Require Import ZArith Lia.
+From Stdlib Require Import ZArith Lia.
 
 (* Why3 goal *)
 Notation power := Zpower.

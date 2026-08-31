@@ -10,7 +10,7 @@ AutoRocq-bench is a corpus of Rocq/Coq proof obligations extracted from real C c
 
 ## What Is In This Repository
 
-The benchmark targets **Rocq (formerly Coq) 8.18.0** and contains obligations derived from:
+The benchmark targets **Rocq (formerly Coq) 9.0.0** and contains obligations derived from:
 
 - **SV-COMP programs** (`svcomp`)
 - **Linux-kernel modules** (`verker`)

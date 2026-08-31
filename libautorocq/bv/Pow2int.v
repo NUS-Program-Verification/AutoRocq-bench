@@ -51,7 +51,7 @@ Qed.
 Lemma pow2pos :
   forall (i:Numbers.BinNums.Z), (0%Z <= i)%Z -> (0%Z < (pow2 i))%Z.
   intros i h1.
-  Require Import Zorder.
+  From Stdlib Require Import Zorder.
   apply Z.gt_lt.
   auto using two_p_gt_ZERO.
 Qed.

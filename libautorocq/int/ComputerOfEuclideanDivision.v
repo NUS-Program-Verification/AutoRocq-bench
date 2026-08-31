@@ -20,7 +20,7 @@ Require int.Int.
 Require int.Abs.
 Require int.EuclideanDivision.
 Require int.ComputerDivision.
-From Coq Require Import ZArith Lia.
+From Stdlib Require Import ZArith Lia.
 
 Lemma on_pos_euclidean_is_div:
   forall n d, (int.EuclideanDivision.div n (Zpos d)) = Z.div n (Zpos d).

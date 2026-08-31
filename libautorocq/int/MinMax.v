@@ -14,7 +14,7 @@
 Require Import BuiltIn.
 Require BuiltIn.
 Require int.Int.
-From Coq Require Import ZArith Lia.
+From Stdlib Require Import ZArith Lia.
 
 (* Why3 comment *)
 (* min is replaced with (ZArith.BinInt.Z.min x x1) by the coq driver *)

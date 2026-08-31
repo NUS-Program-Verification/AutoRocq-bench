@@ -9,10 +9,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-Require Export ZArith.
-Require Export Rbase.
+From Stdlib Require Export ZArith.
+From Stdlib Require Export Rbase.
 
-Require Import ClassicalEpsilon.
+From Stdlib Require Import ClassicalEpsilon.
 
 Class WhyType T := {
   why_inhabitant : T ;

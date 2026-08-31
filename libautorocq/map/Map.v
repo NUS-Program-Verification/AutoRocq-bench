@@ -15,7 +15,7 @@ Require Import BuiltIn.
 Require BuiltIn.
 Require HighOrd.
 
-Require Import ClassicalEpsilon.
+From Stdlib Require Import ClassicalEpsilon.
 
 (* Why3 assumption *)
 Definition map (a:Type) (b:Type) := a -> b.

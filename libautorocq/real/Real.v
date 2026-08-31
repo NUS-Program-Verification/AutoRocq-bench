@@ -181,7 +181,7 @@ Proof.
 intros x y z (Zy, Zz).
 unfold Rdiv.
 rewrite Rmult_assoc.
-now rewrite Rinv_mult_distr.
+now rewrite Rinv_mult.
 Qed.
 
 (* Why3 goal *)

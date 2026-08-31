@@ -281,6 +281,7 @@ Proof.
 Qed.
 
 Require Import Qedlib.
+From Stdlib Require Import Lia.
 Local Open Scope Z_scope.
 Require Import Zbits.
 
@@ -327,7 +328,7 @@ Defined.
 
 (** * Bit extraction *)
 (** Tacticals *)
-Local Ltac omegaContradiction := cut False; [contradiction|omega].
+Local Ltac omegaContradiction := cut False; [contradiction|lia].
 
 Ltac unfold_bit_testb h := 
   unfold bit_testb; unfold Zbits.bit_testb; 
@@ -335,12 +336,12 @@ Ltac unfold_bit_testb h :=
 
 (** Some useful properties *)
 Remark Zlt_bool_true_Zlt: forall (b:bool) (x y: Z),
-  (b = Zlt_bool x y)  <-> ((b = true) <-> x < y).
+  (b = Z.ltb x y)  <-> ((b = true) <-> x < y).
 Proof.
   intros.
   split; case_lt x y; intros; try rewrite H0.
   + split; intro G; auto.
-  + split; intro G; [discriminate G| omega].
+  + split; intro G; [discriminate G| lia].
   + auto.
   + destruct b; try auto.
     destruct H0. assert (x < y) by (by (apply H0)).
@@ -420,7 +421,7 @@ Proof.
   rewrite <- lsl_1_0.
   intro.
   apply bit_test_extraction.
-  + omega.
+  + lia.
   + rewrite Zbits.land_commut.
     auto.
 Qed.
@@ -555,7 +556,7 @@ Proof.
   unfold Zbits.lsl_arithmetic_def.
   rewrite Zabs2Nat.abs_nat_nonneg by auto.
   rewrite Zabs2Nat.abs_nat_nonneg by auto.
-  rewrite Z2Nat.inj_add by omega.
+  rewrite Z2Nat.inj_add by lia.
   pose (n0:=Z.to_nat n); fold n0.
 
   replace ((Z.to_nat 1%Z)%nat) with (1%nat) by auto.
@@ -568,7 +569,7 @@ Proof.
   cut((land 1 x < 2)%Z) ; auto with zarith.
 
   case_eq ((land 1 x)%Z) (0%Z); intros.
-  rewrite bit_test_extraction_bis_eq; [omega|].
+  rewrite bit_test_extraction_bis_eq; [lia|].
   apply bit_test_extraction_bis. 
   auto. 
 Qed.
@@ -583,7 +584,7 @@ Proof.
   unfold lsl. unfold Zbits.lsl. 
   unfold_bit_testb h1.
   rewrite (Zle_imp_le_bool _ _ h2).
-  rewrite (Zle_imp_le_bool 0 (m - n)) by omega.
+  rewrite (Zle_imp_le_bool 0 (m - n)) by lia.
   rewrite Zbits.lsl_extraction.
   rewrite (Z.abs_eq n); auto.
   rewrite (Z.abs_eq m); auto.
@@ -614,8 +615,6 @@ Proof.
   rewrite (Z.abs_eq n); auto.
   rewrite (Z.abs_eq m); auto.
   case_leq n m.
-  intros.
-  reflexivity.
 Qed.
 
 (* Why3 goal *)
@@ -673,14 +672,14 @@ Proof.
 
   case_eq i j.
   (** i = j *)
-  + intro EQ; rewrite EQ; rewrite <- beq_nat_refl.  
+  + intro EQ; rewrite EQ; rewrite Nat.eqb_refl.  
     symmetry. apply Qed.eqb1 ; auto.
   (** i <> j *)
   + intro NEQ.
     assert (Qed.eqb i j = false) as EQB.
     { apply Qed.eqb_false. assumption. }
     rewrite EQB.
-    rewrite -> beq_nat_false_iff.
+    rewrite -> Nat.eqb_neq.
     contradict NEQ.
     rewrite Z2Nat.inj_iff in NEQ; auto.
 Qed.
@@ -710,10 +709,10 @@ Proof.
   rewrite Zbits.bit_testb_pos ; auto.
   + assert (HB:(Bits.Zbit x (Z.abs_nat j) = false)).
     {(apply (Zbits.Zbit_unsigned_trail  (Z.abs_nat i) (Z.abs_nat j) x); auto).
-      apply Zabs_nat_le; omega. }     
+      apply Zabs_nat_le; lia. }     
     unfold Zbits.zbit_test_def.
     rewrite HB; discriminate.
-  + omega.
+  + lia.
 Qed.
 
 (* Why3 goal *)
@@ -757,10 +756,10 @@ Proof.
   assert (H:(Bits.Zbit x (Z.abs_nat i) = false)).
   { unfold Cint.is_uint in h2.
     apply (Zbits.Zbit_unsigned_trail (Z.abs_nat n) (Z.abs_nat i) x).
-    + apply Zabs_nat_le. omega.
+    + apply Zabs_nat_le. lia.
     + unfold Cint.two_power_abs in h2.
       trivial. }
-  assert (I:(0 <= i)) by omega;
+  assert (I:(0 <= i)) by lia;
   unfold bit_test; unfold_bit_testb I; unfold Zbits.zbit_test_def.
   rewrite H; discriminate.
 Qed.
@@ -779,7 +778,7 @@ Proof.
   rewrite Zbits.Zbit_uint_mod_two_power_nat.
   rewrite (leb_correct_conv k (Z.abs_nat n)).
   + trivial.
-  + apply Zabs_nat_lt; omega.
+  + apply Zabs_nat_lt; lia.
 Qed.
 
 (* Why3 goal *)
@@ -806,11 +805,11 @@ Proof.
   assert (forall i: int, (0 <= i)%Z -> (bit_test x i <-> bit_test y i)).
   { intros.
     case_lt i n; intro.
-    + apply h4; omega.
+    + apply h4; lia.
     + assert (~ bit_test x i).
-      { apply (to_uint_extraction_sup n). omega. auto. }
+      { apply (to_uint_extraction_sup n). lia. auto. }
       assert (~ bit_test y i).
-      { apply (to_uint_extraction_sup n). omega. auto. }
+      { apply (to_uint_extraction_sup n). lia. auto. }
      intuition. }
   clear h1; clear h2; clear h3; clear h4.
   unfold bit_test in H.
@@ -823,12 +822,12 @@ Qed.
 Local Ltac uint_extraction_inf_bool to_uint :=
   intros; rewrite to_uint; 
   apply to_uint_extraction_inf_bool;
-  omega.
+  lia.
   
 Local Ltac uint_extraction_inf to_uint :=
   intros; rewrite to_uint; 
   apply to_uint_extraction_inf;
-  omega.
+  lia.
 						 
 (** *** Cast to uint8 C type *)
 (* Why3 goal *)
@@ -979,10 +978,10 @@ Proof.
   intros n x i h1.
   unfold Cint.is_sint.
   intro h2;
-  assert (H:(0 <= i)) by omega;
+  assert (H:(0 <= i)) by lia;
   unfold bit_test; unfold_bit_testb H; unfold Zbits.zbit_test_def.
   assert (Z.abs_nat n <= Z.abs_nat i)%nat.
-  { apply (Zabs_nat_le); omega. }
+  { apply (Zabs_nat_le); lia. }
   rewrite <- Zlt_bool_true_Zlt; 
   apply (Zbits.Zbit_trail (Z.abs_nat n) (Z.abs_nat i) x); auto.
 Qed.
@@ -1000,7 +999,7 @@ Proof.
   replace (Cint.two_power_abs n + Cint.two_power_abs n) with (2 * Cint.two_power_abs n) by (auto with zarith).
   unfold Cint.two_power_abs.
   replace n with ((n-i)+i) by (auto with zarith).
-  rewrite Zabs2Nat.inj_add by omega.
+  rewrite Zabs2Nat.inj_add by lia.
   apply Zbits.Zbit_sint_mod_two_power_nat.
 Qed.
 
@@ -1028,17 +1027,17 @@ Proof.
   assert (forall i: int, (0 <= i)%Z -> (bit_test x i <-> bit_test y i)).
   { intros.
     case_leq i n; intro.
-    + apply h4; omega.
-    + assert (0<=n<=n) by omega.
+    + apply h4; lia.
+    + assert (0<=n<=n) by lia.
       specialize ((h4 n) H1).
       generalize ((to_sint_extraction_sup n x n) H1 h2).
       generalize ((to_sint_extraction_sup n y n) H1 h3).
       clear H1; intros.
       rewrite h4 in H2. rewrite H2 in H1. clear H2.
       assert ((bit_test x i) <-> x < 0).
-      { apply (to_sint_extraction_sup n); [omega | auto]. }
+      { apply (to_sint_extraction_sup n); [lia | auto]. }
       assert ((bit_test y i) <-> y < 0).
-      { apply (to_sint_extraction_sup n); [omega | auto]. }
+      { apply (to_sint_extraction_sup n); [lia | auto]. }
       rewrite H2.
       rewrite H3.
       auto. }
@@ -1055,11 +1054,11 @@ Local Ltac sint_extraction_sup is_sint vn vz :=
   intros x i h1;
   unfold is_sint;
   intro h2;
-  assert (H:(0 <= i)) by omega;
+  assert (H:(0 <= i)) by lia;
   unfold bit_test; unfold_bit_testb H; unfold Zbits.zbit_test_def;
   assert (Z.abs_nat vz <= Z.abs_nat i)%nat 
   by (assert (vn = Z.abs_nat vz)%nat by (auto with arith);
-      apply Zabs_nat_le; omega);
+      apply Zabs_nat_le; lia);
   rewrite <- Zlt_bool_true_Zlt; 
   apply (Zbits.Zbit_trail vn (Z.abs_nat i) x); auto.
 
@@ -1076,12 +1075,12 @@ Local Ltac unfold_hyp h :=
 Local Ltac sint_extraction_inf_bool to_sint :=
   intros; rewrite to_sint; 
   apply to_sint_extraction_inf_bool;
-  omega.
+  lia.
   
 Local Ltac sint_extraction_inf to_sint :=
   intros; rewrite to_sint; 
   apply to_sint_extraction_inf;
-  omega.
+  lia.
 						 
 (** *** Cast to sint8 C type *)
 (* Why3 goal *)
@@ -1232,8 +1231,8 @@ Local Ltac is_uint_bitwise f n :=
 Local Ltac lsr_in_uint_range n :=
   intros x y Ry Rx; unfold_hyp Rx; apply Cint.id_to_range;
   split;
-  [ (apply (Zbits.lsr_lower_bound 0 _ _ Ry); omega)
-  | (apply (Zbits.lsr_upper_bound n _ _ Ry); omega)].
+  [ (apply (Zbits.lsr_lower_bound 0 _ _ Ry); lia)
+  | (apply (Zbits.lsr_upper_bound n _ _ Ry); lia)].
 
 (** ** Unsigned conversions *)
   
@@ -1329,7 +1328,7 @@ Lemma is_uint_lsl1_inf :
   ((Cint.to_uint n (lsl 1%Z y)) = (lsl 1%Z y)).
 Proof.
   intros n y (h1,h2);
-  (assert (0 <= y) as Ry by omega);
+  (assert (0 <= y) as Ry by lia);
   unfold lsl; unfold Zbits.lsl; rewrite (Zle_imp_le_bool _ _ Ry);
   unfold Zbits.lsl_def;
   rewrite Zbits.lsl_arithmetic_shift; unfold Zbits.lsl_arithmetic_def.
@@ -1338,7 +1337,7 @@ Proof.
   clear Ry.
 
   assert (Z.abs_nat y < (Z.abs_nat n))%nat as A by
-   (apply Zabs_nat_lt; omega);
+   (apply Zabs_nat_lt; lia);
   clear h1; clear h2;
   pose (M := Z.abs_nat y); fold M; fold M in A.
 
@@ -1347,7 +1346,7 @@ Proof.
   unfold Cint.two_power_abs; pose (N:=(Z.abs_nat n)); fold N; fold N in A.
   generalize (Bits.two_power_nat_is_positive M); intro Pos.
   generalize (Bits.two_power_nat_increase_strict M N A) ; intro.
-  omega.
+  lia.
 Qed.
 
 (* Why3 goal *)
@@ -1356,7 +1355,7 @@ Lemma is_uint_lsl1_sup :
   ((Cint.to_uint n (lsl 1%Z y)) = 0%Z).
 Proof.
   intros n y h1.
-  (assert (0 <= y) as Ry by omega);
+  (assert (0 <= y) as Ry by lia);
   unfold lsl; unfold Zbits.lsl; rewrite (Zle_imp_le_bool _ _ Ry);
   unfold Zbits.lsl_def;
   rewrite Zbits.lsl_arithmetic_shift; unfold Zbits.lsl_arithmetic_def.
@@ -1365,12 +1364,12 @@ Proof.
   clear Ry.
 
   assert (Z.abs_nat n <= (Z.abs_nat y))%nat as A by
-   (apply Zabs_nat_le; omega);
+   (apply Zabs_nat_le; lia);
   clear h1;
   pose (M := Z.abs_nat y); fold M; fold M in A.
   unfold Cint.to_uint; unfold Cint.to_range; Cint.simplify_to_range_unfolding.
   
-  rewrite (le_plus_minus (Z.abs_nat n) M A).
+  replace M with (Z.abs_nat n + (M - Z.abs_nat n))%nat by lia.
   replace (Z.abs_nat n + (M - Z.abs_nat n))%nat with ((M - Z.abs_nat n) + Z.abs_nat n)%nat by (auto with zarith).
   rewrite Bits.two_power_nat_plus.
 
@@ -1422,7 +1421,7 @@ Qed.
 Lemma is_uint8_lsl1_sup :
   forall (y:Z), (8%Z <= y)%Z -> ((Cint.to_uint8 (lsl 1%Z y)) = 0%Z).
 Proof.
-  intros; rewrite Cint.to_uint_8; apply is_uint_lsl1_sup; omega.
+  intros; rewrite Cint.to_uint_8; apply is_uint_lsl1_sup; lia.
 Qed.
 
 (** ***  Cast to uint16 C type *)
@@ -1470,7 +1469,7 @@ Qed.
 Lemma is_uint16_lsl1_sup :
   forall (y:Z), (16%Z <= y)%Z -> ((Cint.to_uint16 (lsl 1%Z y)) = 0%Z).
 Proof.
-  intros; rewrite Cint.to_uint_16; apply is_uint_lsl1_sup; omega.
+  intros; rewrite Cint.to_uint_16; apply is_uint_lsl1_sup; lia.
 Qed.
 
 (** *** Cast to uint32 C type *)
@@ -1518,7 +1517,7 @@ Qed.
 Lemma is_uint32_lsl1_sup :
   forall (y:Z), (32%Z <= y)%Z -> ((Cint.to_uint32 (lsl 1%Z y)) = 0%Z).
 Proof.
-  intros; rewrite Cint.to_uint_32; apply is_uint_lsl1_sup; omega.
+  intros; rewrite Cint.to_uint_32; apply is_uint_lsl1_sup; lia.
 Qed.
 
 (** *** Cast to uint64 C type *)
@@ -1566,14 +1565,14 @@ Qed.
 Lemma is_uint64_lsl1_sup :
   forall (y:Z), (64%Z <= y)%Z -> ((Cint.to_uint64 (lsl 1%Z y)) = 0%Z).
 Proof. 
-  intros; rewrite Cint.to_uint_64; apply is_uint_lsl1_sup; omega.
+  intros; rewrite Cint.to_uint_64; apply is_uint_lsl1_sup; lia.
 Qed.
 
 (** ** Signed conversions *)
 (** Tacticals *)
 Local Ltac is_sint_lnot b :=
   intros x Rx; unfold_hyp Rx; apply Cint.id_to_range;
-   apply (Zbits.lnot_in_range (-b) b x Rx); omega.
+   apply (Zbits.lnot_in_range (-b) b x Rx); lia.
 
 Local Ltac is_sint_bitwise f n :=
   intros x y Rx Ry; unfold_hyp Rx; unfold_hyp Ry; apply Cint.id_to_range;
@@ -1582,8 +1581,8 @@ Local Ltac is_sint_bitwise f n :=
 Local Ltac lsr_in_sint_range n :=
   intros x y Ry Rx; unfold_hyp Rx; apply Cint.id_to_range;
   split;
-  [ (apply (Zbits.lsr_lower_bound (-n) _ _ Ry); omega)
-  | (apply (Zbits.lsr_upper_bound n _ _ Ry); omega)].
+  [ (apply (Zbits.lsr_lower_bound (-n) _ _ Ry); lia)
+  | (apply (Zbits.lsr_upper_bound n _ _ Ry); lia)].
 
 (* Why3 goal *)
 Lemma is_sint_lnot :
@@ -1641,9 +1640,9 @@ Proof.
   generalize (Cint.two_power_abs_is_positive y);
   generalize (Cint.two_power_abs_is_positive n);
   unfold Cint.two_power_abs; intros.
-  split; [omega|].
+  split; [lia|].
   apply Bits.two_power_nat_increase_strict.
-  apply Zabs_nat_lt; omega.
+  apply Zabs_nat_lt; lia.
 Qed.
 
 (* Why3 goal *)
@@ -1652,7 +1651,7 @@ Lemma is_sint_lsl1_sup :
   ((Cint.to_sint n (lsl 1%Z y)) = 0%Z).
 Proof.
   intros n y h1.
-  assert (0 <= y) as Ry by omega;
+  assert (0 <= y) as Ry by lia;
   unfold lsl; unfold Zbits.lsl; rewrite (Zle_imp_le_bool _ _ Ry);
   unfold Zbits.lsl_def;
   rewrite Zbits.lsl_arithmetic_shift; unfold Zbits.lsl_arithmetic_def;
@@ -1666,11 +1665,11 @@ Proof.
                                (Cint.two_power_abs (y - (n + 1)))
                                 N).
   + auto with zarith.
-  + generalize (Cint.two_power_abs_is_positive n); fold N; omega.
+  + generalize (Cint.two_power_abs_is_positive n); fold N; lia.
   + rewrite Z.add_cancel_r. 
     replace (N + N) with (2 * N) by (auto with zarith); unfold N. 
-    rewrite <- Cint.two_power_abs_plus_one by omega.
-    rewrite <- Cint.two_power_abs_plus_pos by omega.
+    rewrite <- Cint.two_power_abs_plus_one by lia.
+    rewrite <- Cint.two_power_abs_plus_pos by lia.
     replace (n + 1 + (y - (n + 1))) with y by ring.
     auto.
 Qed.
@@ -1726,14 +1725,14 @@ Lemma is_sint8_lsl1_inf :
   forall (y:Z), ((0%Z <= y)%Z /\ (y < 7%Z)%Z) ->
   ((Cint.to_sint8 (lsl 1%Z y)) = (lsl 1%Z y)).
 Proof.
-  intros; rewrite Cint.to_sint_8; apply is_sint_lsl1_inf; omega.
+  intros; rewrite Cint.to_sint_8; apply is_sint_lsl1_inf; lia.
 Qed.
 
 (* Why3 goal *)
 Lemma is_sint8_lsl1_sup :
   forall (y:Z), (8%Z <= y)%Z -> ((Cint.to_sint8 (lsl 1%Z y)) = 0%Z).
 Proof.
-  intros; rewrite Cint.to_sint_8; apply is_sint_lsl1_sup; omega.
+  intros; rewrite Cint.to_sint_8; apply is_sint_lsl1_sup; lia.
 Qed.
 
 (** *** Cast to sint16 C type *)
@@ -1787,14 +1786,14 @@ Lemma is_sint16_lsl1_inf :
   forall (y:Z), ((0%Z <= y)%Z /\ (y < 15%Z)%Z) ->
   ((Cint.to_sint16 (lsl 1%Z y)) = (lsl 1%Z y)).
 Proof.
-  intros; rewrite Cint.to_sint_16; apply is_sint_lsl1_inf; omega.
+  intros; rewrite Cint.to_sint_16; apply is_sint_lsl1_inf; lia.
 Qed.
 
 (* Why3 goal *)
 Lemma is_sint16_lsl1_sup :
   forall (y:Z), (16%Z <= y)%Z -> ((Cint.to_sint16 (lsl 1%Z y)) = 0%Z).
 Proof.
-  intros; rewrite Cint.to_sint_16; apply is_sint_lsl1_sup; omega.
+  intros; rewrite Cint.to_sint_16; apply is_sint_lsl1_sup; lia.
 Qed.
 
 (** *** Cast to sint32 C type *)
@@ -1848,14 +1847,14 @@ Lemma is_sint32_lsl1_inf :
   forall (y:Z), ((0%Z <= y)%Z /\ (y < 31%Z)%Z) ->
   ((Cint.to_sint32 (lsl 1%Z y)) = (lsl 1%Z y)).
 Proof.
-   intros; rewrite Cint.to_sint_32; apply is_sint_lsl1_inf; omega.
+   intros; rewrite Cint.to_sint_32; apply is_sint_lsl1_inf; lia.
 Qed.
 
 (* Why3 goal *)
 Lemma is_sint32_lsl1_sup :
   forall (y:Z), (32%Z <= y)%Z -> ((Cint.to_sint32 (lsl 1%Z y)) = 0%Z).
 Proof.
-  intros; rewrite Cint.to_sint_32; apply is_sint_lsl1_sup; omega.
+  intros; rewrite Cint.to_sint_32; apply is_sint_lsl1_sup; lia.
 Qed.
 
 (** *** Cast to sint64 C type *)
@@ -1909,14 +1908,14 @@ Lemma is_sint64_lsl1_inf :
   forall (y:Z), ((0%Z <= y)%Z /\ (y < 63%Z)%Z) ->
   ((Cint.to_sint64 (lsl 1%Z y)) = (lsl 1%Z y)).
 Proof.
-  intros; rewrite Cint.to_sint_64; apply is_sint_lsl1_inf; omega.
+  intros; rewrite Cint.to_sint_64; apply is_sint_lsl1_inf; lia.
 Qed.
 
 (* Why3 goal *)
 Lemma is_sint64_lsl1_sup :
   forall (y:Z), (64%Z <= y)%Z -> ((Cint.to_sint64 (lsl 1%Z y)) = 0%Z).
 Proof.
-  intros; rewrite Cint.to_sint_64; apply is_sint_lsl1_sup; omega.
+  intros; rewrite Cint.to_sint_64; apply is_sint_lsl1_sup; lia.
 Qed.
 
 (** * Range of some bitwise operations *)
@@ -1937,8 +1936,8 @@ Proof.
   case_leq 0 x; intro.
   + apply Zbits.uint_lor_inf; trivial.
   + replace x with (-1).
-    { rewrite Zbits.lor_1; omega. }
-    omega.
+    { rewrite Zbits.lor_1; lia. }
+    lia.
 Qed.
 
 (* Why3 goal *)
@@ -1947,13 +1946,13 @@ Lemma sint_land_inf :
 Proof.
   intros x y h1 h2.
   cut (-(x+1) <= -((land x y)+1)).
-  { omega. }
+  { lia. }
   fold (Bits.zlnot x).
   fold (Bits.zlnot (land x y)).
   repeat (rewrite <- Zbits.lnot_zlnot_equiv).
   rewrite Zbits.lnot_land_de_morgan.
   repeat (rewrite Zbits.lnot_zlnot_equiv).
-  apply (uint_lor_inf (Bits.zlnot x)); unfold Bits.zlnot; try omega.
+  apply (uint_lor_inf (Bits.zlnot x)); unfold Bits.zlnot; try lia.
 Qed.
 
 (* Why3 goal *)
@@ -1963,14 +1962,14 @@ Lemma sint_lor_range :
 Proof.
   intros x y h1.
   cut (0 <= -((lor x y)+1) <= -(x+1)).
-  { omega. }
+  { lia. }
   fold (Bits.zlnot x).
   fold (Bits.zlnot (lor x y)).
   rewrite <- Zbits.lnot_zlnot_equiv.
   rewrite Zbits.lnot_lor_de_morgan.
   rewrite Zbits.lnot_zlnot_equiv.
   apply (uint_land_range (Bits.zlnot x)).
-  unfold Bits.zlnot; omega.
+  unfold Bits.zlnot; lia.
 Qed.
 
 (* Why3 goal *)
@@ -1984,14 +1983,14 @@ Proof.
     rewrite <- Zbits.lor_sign in H.
     destruct H.
     generalize H0; clear H0.
-    assert (h1:((-1) <= x)) by omega.
+    assert (h1:((-1) <= x)) by lia.
     generalize (uint_lor_inf x y h1 H1).
     rewrite Zbits.lor_commut.
-    assert (h2:((-1) <= y)) by omega.
+    assert (h2:((-1) <= y)) by lia.
     generalize (uint_lor_inf y x h2 H).
     unfold lor;
     pose (z:=(Zbits.lor y x)); fold z; intros.
-    omega.
+    lia.
   + intro H; destruct H.
     rewrite <- (is_uint_lor n) by trivial.
     apply Cint.is_to_uint.
@@ -2026,7 +2025,7 @@ Proof.
   unfold Cint.two_power_abs.
   rewrite Zbits.pos_mod_two_power_nat_land_edge.
   unfold land; f_equal.
-  unfold lsl; rewrite Zbits.lsl_pos by omega; unfold Zbits.lsl_def. 
+  unfold lsl; rewrite Zbits.lsl_pos by lia; unfold Zbits.lsl_def. 
   rewrite Zbits.lsl_arithmetic_shift; unfold Zbits.lsl_arithmetic_def.
   auto with zarith.
 Qed.

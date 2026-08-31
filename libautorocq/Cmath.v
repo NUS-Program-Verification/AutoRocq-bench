@@ -29,7 +29,7 @@ Require int.Abs.
 Require real.Real.
 Require real.RealInfix.
 
-Require Import RIneq.
+From Stdlib Require Import RIneq.
 
 (* Why3 goal *)
 Lemma abs_def :

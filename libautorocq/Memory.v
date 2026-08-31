@@ -29,7 +29,8 @@ Require bool.Bool.
 Require int.Int.
 Require map.Map.
 
-Require Import ZArith.
+From Stdlib Require Import ZArith.
+From Stdlib Require Import Lia.
 Require Import Qedlib.
 
 (* Why3 assumption *)
@@ -61,13 +62,13 @@ Defined.
 (* Why3 goal *)
 Definition addr_le_bool : addr -> addr -> bool.
   exact (fun (p q : addr) =>
-           andb (Zeq_bool (base p) (base q)) (Zle_bool (offset p) (offset q))).
+           andb (Z.eqb (base p) (base q)) (Z.leb (offset p) (offset q))).
 Defined.
 
 (* Why3 goal *)
 Definition addr_lt_bool : addr -> addr -> bool.
   exact (fun (p q : addr) =>
-           andb (Zeq_bool (base p) (base q)) (Zlt_bool (offset p) (offset q))).
+           andb (Z.eqb (base p) (base q)) (Z.ltb (offset p) (offset q))).
 Defined.
 
 (* Why3 goal *)
@@ -95,14 +96,14 @@ Proof.
   unfold addr_le. unfold addr_le_bool.
   intros. split; intro H.
   destruct H as [H0 H1].
-  rewrite Zeq_is_eq_bool in H0.
+  rewrite <- Z.eqb_eq in H0.
   apply Zle_imp_le_bool in H1.
   rewrite H0. rewrite H1.
   compute;reflexivity.
   symmetry in H.
   apply Bool.andb_true_eq in H.
   destruct H as [H1 H2].
-  split;[apply Zeq_bool_eq|apply Zle_bool_imp_le];symmetry; assumption.
+  split;[apply Z.eqb_eq|apply Zle_bool_imp_le];symmetry; assumption.
 Qed.
 
 (* Why3 goal *)
@@ -112,14 +113,14 @@ Proof.
   unfold addr_lt. unfold addr_lt_bool.
   intros. split; intro H.
   destruct H as [H0 H1].
-  rewrite Zeq_is_eq_bool in H0.
+  rewrite <- Z.eqb_eq in H0.
   rewrite Zlt_is_lt_bool in H1.
   rewrite H0. rewrite H1.
   compute;reflexivity.
   symmetry in H.
   apply Bool.andb_true_eq in H.
   destruct H as [H1 H2].
-  split;[apply Zeq_bool_eq|rewrite Zlt_is_lt_bool];symmetry; assumption.
+  split;[apply Z.eqb_eq|rewrite Zlt_is_lt_bool];symmetry; assumption.
 Qed.
 
 (* Why3 assumption *)
@@ -154,7 +155,7 @@ Definition eqmem {a:Type} {a_WT:WhyType a} (m1: farray addr a) (m2:farray addr a
   forall (q:addr), (included q 1%Z p a1) -> ((m1 .[ q ]) = (m2 .[ q ])).
 
 (* Why3 goal *)
-Variable havoc: forall {a:Type} {a_WT:WhyType a}, (map.Map.map addr a) ->
+Parameter havoc: forall {a:Type} {a_WT:WhyType a}, (map.Map.map addr a) ->
   (map.Map.map addr a) -> addr -> Z -> map.Map.map addr a.
 
 Definition fhavoc {A : Type}
@@ -236,7 +237,7 @@ Proof.
   rewrite BaseP in BaseQ.
   contradiction.
   rewrite <- EQ in InQ1,InQ2.
-  omega.
+  lia.
 Qed.
 
 (* Why3 goal *)
@@ -292,7 +293,7 @@ Lemma included_trans :
   (included p a q b) -> (included q b r c) -> included p a r c.
 Proof.
   intros p a q b r c.
-  unfold included. intuition.
+  unfold included. intuition (auto with zarith).
 Qed.
 
 (* Why3 goal *)

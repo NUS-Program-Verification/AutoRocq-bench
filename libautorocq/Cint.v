@@ -31,6 +31,7 @@ Require int.Int.
 Definition is_bool (x:Z): Prop := (x = 0%Z) \/ (x = 1%Z).
 
 Require Import Qedlib.
+From Stdlib Require Import Lia.
 
 (** * remarks about two_power_nat *)
 Remark two_power_nat_is_positive: forall n,
@@ -42,7 +43,7 @@ Proof.
   (** ind. *) 
   + rewrite two_power_nat_S.
     apply Zmult_lt_0_compat.
-    omega.
+    lia.
     auto.
 Qed.
 
@@ -197,7 +198,7 @@ Proof.
   unfold two_power_abs.
   replace (Z.abs_nat (n + m)) with ((Z.abs_nat n) + (Z.abs_nat m))%nat.
   + rewrite two_power_nat_plus. trivial.
-  + rewrite Zabs2Nat.inj_add by omega. trivial.
+  + rewrite Zabs2Nat.inj_add by lia. trivial.
 Qed.
 
 (* Why3 goal *)
@@ -205,7 +206,7 @@ Lemma two_power_abs_plus_one : forall (n:Z), (0%Z <= n)%Z ->
   ((two_power_abs (n + 1%Z)%Z) = (2%Z * (two_power_abs n))%Z).
 Proof.
   intros n h1.
-  rewrite two_power_abs_plus_pos by omega.
+  rewrite two_power_abs_plus_pos by lia.
   replace (two_power_abs 1) with 2%Z.
   + ring.
   + unfold two_power_abs.
@@ -280,12 +281,12 @@ Proof.
   intros n x.
   apply is_to_range.
   generalize (two_power_abs_is_positive n); intro.
-  omega.
+  lia.
 Qed.
 
 (** * C-Integer Conversions are in-range *)
 
-Local Ltac to_range := intro x ; apply is_to_range ; omega.
+Local Ltac to_range := intro x ; apply is_to_range ; lia.
 
 (* Why3 goal *)
 Lemma is_to_uint8 : forall (x:Z), (is_uint8 (to_uint8 x)).
@@ -338,18 +339,18 @@ Proof.
     apply Z_mod_plus_full.
   + assert (k*n > 0).
     { apply Zmult_gt_0_compat; trivial. }
-    omega.
+    lia.
 Qed.			       
 
 Lemma id_to_range : forall a b x, a <= x < b -> to_range a b x = x.
 Proof.
   intros a b x Range. unfold to_range.
   assert (Q : b-a > 0) ; auto with zarith.
-  cut ((x-a) mod (b-a) = (x-a)). omega.
-  apply Zmod_small. omega.
+  cut ((x-a) mod (b-a) = (x-a)). lia.
+  apply Zmod_small. lia.
 Qed.
   
-Local Ltac id_range := intro x ; apply id_to_range ; omega.
+Local Ltac id_range := intro x ; apply id_to_range ; lia.
 
 (* Why3 goal *)
 Lemma id_uint : forall (n:Z) (x:Z), (is_uint n x) <-> ((to_uint n x) = x).
@@ -409,7 +410,7 @@ Qed.
 
 (** * C-Integer Conversions are projections *)
     
-Local Ltac proj := intro x ; apply id_to_range ; apply is_to_range ; omega.
+Local Ltac proj := intro x ; apply id_to_range ; apply is_to_range ; lia.
 
 (* Why3 goal *)
 Lemma proj_uint : forall (n:Z) (x:Z), ((to_uint n (to_uint n x)) = (to_uint n
@@ -427,7 +428,7 @@ Proof.
   unfold to_sint. apply is_to_range. 
   assert (0 < two_power_abs n).
   { apply two_power_abs_is_positive. }
-  omega.
+  lia.
 Qed.
 
 (* Why3 goal *)
@@ -490,8 +491,8 @@ Proof.
     trivial.
   + symmetry. apply Zmod_small.
     assert (0 <= x mod n2 < n2).
-    { apply Z_mod_lt; omega. }
-    omega.
+    { apply Z_mod_lt; lia. }
+    lia.
 Qed.
 
 (* Why3 goal *)
@@ -512,28 +513,28 @@ Proof.
   generalize (two_power_abs_is_positive m).
   generalize (two_power_abs_is_positive (m+n)).
 
-  rewrite two_power_abs_plus_pos by omega.
+  rewrite two_power_abs_plus_pos by lia.
   pose (n2:=(two_power_abs n)); fold n2.
   pose (m2:=(two_power_abs m)); fold m2.
   intros.
 
   replace (m2*n2 + m2*n2) with (2*(m2*n2)) by (auto with zarith).
   replace ((x mod n2 + (m2*n2)) mod (2*(m2*n2))) with (x mod n2 + (m2*n2)).
-  + omega.
+  + lia.
   + symmetry. apply Zmod_small.
     pose (r:=(x mod n2)); fold r.
     assert (0 <= r < n2).
-    { apply Z_mod_lt; omega. }
+    { apply Z_mod_lt; lia. }
     split.
-    * omega.
+    * lia.
     * replace (2*(m2*n2)) with (m2*n2 + m2*n2) by (auto with zarith).
       rewrite <- Z.add_lt_mono_r.
       pose (mn:=(m2 * n2)); fold mn.
       assert (n2 <= mn).
       { replace n2 with (1*n2) by auto with zarith.
 	      unfold mn. 
-        apply Int.CompatOrderMult; omega. }
-      destruct H2. omega.
+        apply Int.CompatOrderMult; lia. }
+      destruct H2. lia.
 Qed.
 
 (* Why3 goal *)
@@ -547,17 +548,17 @@ Proof.
   generalize (two_power_abs_is_positive m).
   generalize (two_power_abs_is_positive (m + (n + 1))).
  
-  rewrite two_power_abs_plus_pos by omega.
-  rewrite two_power_abs_plus_one by omega.
+  rewrite two_power_abs_plus_pos by lia.
+  rewrite two_power_abs_plus_one by lia.
   pose (n2:=(two_power_abs n)); fold n2.
   pose (m2:=(two_power_abs m)); fold m2.
   intros.
 
   replace (n2 + n2) with (2*n2) by (auto with zarith).
   symmetry.
-  rewrite <- (mod_kn_mod_n m2 ) by omega.
-  rewrite <- Z.add_mod_idemp_l by omega.
-  rewrite mod_kn_mod_n by omega.
+  rewrite <- (mod_kn_mod_n m2 ) by lia.
+  rewrite <- Z.add_mod_idemp_l by lia.
+  rewrite mod_kn_mod_n by lia.
   trivial.
 Qed.
 
@@ -606,15 +607,15 @@ Proof.
   repeat (rewrite Z.sub_0_r); repeat (rewrite Z.add_0_l); repeat (rewrite Z.sub_opp_r).
   generalize (two_power_abs_is_positive n).
   generalize (two_power_abs_is_positive m).
-  rewrite two_power_abs_plus_one by omega.
-  rewrite two_power_abs_plus_pos by omega.
+  rewrite two_power_abs_plus_one by lia.
+  rewrite two_power_abs_plus_pos by lia.
   pose (n2:=(two_power_abs n)); fold n2.
   pose (m2:=(two_power_abs m)); fold m2.
   intros.
   replace (m2*n2 + m2*n2) with (2*(m2*n2)) by (auto with zarith).
   rewrite Z.add_opp_l.
   symmetry.
-  rewrite <- (mod_kn_mod_n m2) by omega.
+  rewrite <- (mod_kn_mod_n m2) by lia.
   replace (m2 * (2 * n2)) with (2 * (m2 * n2)) by ring.
   pose (mn:=(m2*n2)); fold mn.
   replace x with ((x+mn)-mn) by (auto with zarith).
@@ -622,7 +623,7 @@ Proof.
   rewrite <- Zminus_mod_idemp_l. 
   unfold mn.
   replace (2 * (m2 * n2)) with (m2 * (2 * n2)) by ring.
-  rewrite mod_kn_mod_n by omega.
+  rewrite mod_kn_mod_n by lia.
   trivial.
 Qed.
 
@@ -630,7 +631,7 @@ Remark two_power_abs_increase: forall (n:Z), 0 <= n -> two_power_abs n < two_pow
 Proof.
   intros.
   generalize (two_power_abs_is_positive n); intro h.
-  rewrite two_power_abs_plus_one; omega.
+  rewrite two_power_abs_plus_one; lia.
 Qed.
 
 Require Import Qedlib.
@@ -643,15 +644,15 @@ Proof.
   { replace (n + 0) with n by ring; auto. }
   intro; unfold is_uint; intros h10 h11.
   split.
-  + omega.
+  + lia.
   + replace (n + (n0 + 1)) with ((n + n0) + 1) by ring.
     pose (m :=(n + n0)); fold m; fold m in h11.
     assert (two_power_abs m < two_power_abs (m + 1)).
-    { assert (0 <= m) by (unfold m; omega).
+    { assert (0 <= m) by (unfold m; lia).
       clear h11 h2 x h3 i h1 h10.
       apply two_power_abs_increase; auto.
     }
-    omega.
+    lia.
 Qed.
 
 (* Why3 goal *)
@@ -665,9 +666,9 @@ Proof.
   replace (n + (n0 + 1)) with ((n + n0) + 1) by ring.
   pose (m :=(n + n0)); fold m; fold m in h11.
   assert (0 <= m).
-  { unfold m; omega. }
+  { unfold m; lia. }
   generalize (two_power_abs_increase m); intro.
-  omega.
+  lia.
 Qed.
 
 (* Why3 goal *)
@@ -677,14 +678,14 @@ Proof.
   intros n x i h1 h2 h3.
   unfold is_sint; unfold is_uint in h3.
   apply Qedlib.Z_induction_rank with (m:=0) (n := i) ; auto with zarith.
-  { replace (n + 0) with n by ring; omega. }
+  { replace (n + 0) with n by ring; lia. }
   intro.
   replace (n + (n0 + 1)) with ((n + n0) + 1) by ring.
   pose (m :=(n + n0)); fold m; intros.
   assert (0 <= m).
-  { unfold m; omega. }
+  { unfold m; lia. }
   generalize (two_power_abs_increase m); intro.
-  omega.
+  lia.
 Qed.
 
 Require Import Zbits.

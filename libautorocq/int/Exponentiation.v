@@ -14,7 +14,7 @@
 Require Import BuiltIn.
 Require BuiltIn.
 Require int.Int.
-From Coq Require Import ZArith Lia.
+From Stdlib Require Import ZArith Lia.
 
 Section Exponentiation.
 

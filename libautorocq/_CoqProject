@@ -12,6 +12,10 @@ Vlist.v
 Vset.v
 Cmath.v
 Cfloat.v
+Cint.v
+Cbits.v
+Zbits.v
+Memory.v
 
 bool/Bool.v
 

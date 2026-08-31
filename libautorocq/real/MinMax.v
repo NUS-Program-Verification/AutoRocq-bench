@@ -15,7 +15,7 @@ Require Import BuiltIn.
 Require BuiltIn.
 Require real.Real.
 
-Require Import Rbasic_fun.
+From Stdlib Require Import Rbasic_fun.
 
 (* Why3 comment *)
 (* min is replaced with (Reals.Rbasic_fun.Rmin x x1) by the coq driver *)

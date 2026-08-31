@@ -18,12 +18,12 @@ Require Import BuiltIn.
 Require BuiltIn.
 Require int.Int.
 Require int.Abs.
-From Coq Require Import ZArith Lia.
+From Stdlib Require Import ZArith Lia.
 
 (* Why3 goal *)
 Definition div : Numbers.BinNums.Z -> Numbers.BinNums.Z -> Numbers.BinNums.Z.
 intros x y.
-case (Z_le_dec 0 (Zmod x y)) ; intros H.
+case (Z_le_dec 0 (Z.modulo x y)) ; intros H.
 exact (Z.div x y).
 exact (Z.div x y + 1)%Z.
 Defined.
@@ -76,12 +76,12 @@ destruct cases as [h4 | [h5 | h6]]; auto.
 assert (y * div x y <= y * (q - 1))%Z.
  apply  Zmult_le_compat_l; auto with zarith.
 replace (y*(q-1))%Z with (q*y - y)%Z in H by ring.
-elimtype False.
+exfalso.
 lia.
 assert (y * div x y >= y * (q + 1))%Z.
  apply  Zmult_ge_compat_l; auto with zarith.
 replace (y*(q+1))%Z with (q*y + y)%Z in H by ring.
-elimtype False.
+exfalso.
 lia.
 Qed.
 
