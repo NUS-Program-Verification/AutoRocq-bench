@@ -6,6 +6,8 @@
 *.cache
 *.backup
 *.log
+*_autorocq_*.v
+autorocq-*/
 */__pycache__
 *.pyc
 temp/
